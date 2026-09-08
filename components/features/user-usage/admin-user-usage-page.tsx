@@ -1,45 +1,60 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, CalendarDays, Images, SearchCheck, Users } from "lucide-react";
 import { getAdminUserUsages } from "@/lib/api";
-import { AdminUserUsage, UserUsageCounts } from "@/types/store-pilot";
+import { AdminUserUsage, UserUsagePeriod } from "@/types/store-pilot";
 
-type UsagePeriod = "today" | "month" | "total";
-
-const PERIODS: Array<{ value: UsagePeriod; label: string }> = [
-  { value: "today", label: "오늘" },
-  { value: "month", label: "이번 달" },
-  { value: "total", label: "전체" },
+const PERIODS: Array<{ value: UserUsagePeriod; label: string }> = [
+  { value: "TODAY", label: "오늘" },
+  { value: "MONTH", label: "이번 달" },
+  { value: "TOTAL", label: "전체" },
 ];
 
 export function AdminUserUsagePage() {
   const [users, setUsers] = useState<AdminUserUsage[]>([]);
-  const [period, setPeriod] = useState<UsagePeriod>("today");
+  const [period, setPeriod] = useState<UserUsagePeriod>("TODAY");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    getAdminUserUsages()
-      .then((body) => setUsers(body.data?.users ?? []))
-      .catch((error) => setMessage(error instanceof Error ? error.message : "사용량을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-  }, []);
+    let active = true;
+    getAdminUserUsages(period)
+      .then((body) => {
+        if (active) {
+          setUsers(body.data?.users ?? []);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setMessage(error instanceof Error ? error.message : "사용량을 불러오지 못했습니다.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [period]);
 
-  const displayedUsers = useMemo(() => [...users].sort((first, second) => {
-    const firstUsage = getUsage(first, period);
-    const secondUsage = getUsage(second, period);
-    return secondUsage.processedProductCount - firstUsage.processedProductCount
-      || secondUsage.imageDownloadCount - firstUsage.imageDownloadCount;
-  }), [period, users]);
+  function handlePeriodChange(nextPeriod: UserUsagePeriod) {
+    if (nextPeriod === period) {
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    setPeriod(nextPeriod);
+  }
 
-  const totals = users.reduce<UserUsageCounts>((result, user) => {
-    const usage = getUsage(user, period);
+  const totals = users.reduce((result, user) => {
     return {
-      categoryKeywordJobCount: result.categoryKeywordJobCount + usage.categoryKeywordJobCount,
-      processedProductCount: result.processedProductCount + usage.processedProductCount,
-      imageDownloadCount: result.imageDownloadCount + usage.imageDownloadCount,
-      categoryLearningRequestCount: result.categoryLearningRequestCount + usage.categoryLearningRequestCount,
+      categoryKeywordJobCount: result.categoryKeywordJobCount + user.categoryKeywordJobCount,
+      processedProductCount: result.processedProductCount + user.processedProductCount,
+      imageDownloadCount: result.imageDownloadCount + user.imageDownloadCount,
+      categoryLearningRequestCount: result.categoryLearningRequestCount + user.categoryLearningRequestCount,
     };
   }, emptyUsage());
 
@@ -66,7 +81,7 @@ export function AdminUserUsagePage() {
                     : "text-slate-500 hover:text-slate-800",
                 ].join(" ")}
                 key={item.value}
-                onClick={() => setPeriod(item.value)}
+                onClick={() => handlePeriodChange(item.value)}
                 type="button"
               >
                 {item.label}
@@ -106,24 +121,21 @@ export function AdminUserUsagePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
-                {displayedUsers.map((user) => {
-                  const usage = getUsage(user, period);
-                  return (
+                {users.map((user) => (
                     <tr className="hover:bg-slate-50" key={user.userId}>
                       <td className="px-4 py-3 font-bold text-slate-900">{user.email}</td>
                       <td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-500">
                         {user.role === "ADMIN" ? "관리자" : "사용자"}
                       </td>
-                      <UsageCell value={usage.categoryKeywordJobCount} suffix="회" />
-                      <UsageCell value={usage.processedProductCount} suffix="개" />
-                      <UsageCell value={usage.imageDownloadCount} suffix="개" />
-                      <UsageCell value={usage.categoryLearningRequestCount} suffix="회" />
+                      <UsageCell value={user.categoryKeywordJobCount} suffix="회" />
+                      <UsageCell value={user.processedProductCount} suffix="개" />
+                      <UsageCell value={user.imageDownloadCount} suffix="개" />
+                      <UsageCell value={user.categoryLearningRequestCount} suffix="회" />
                       <td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-500">
                         {formatDate(user.lastUsedDate)}
                       </td>
                     </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>
@@ -133,11 +145,7 @@ export function AdminUserUsagePage() {
   );
 }
 
-function getUsage(user: AdminUserUsage, period: UsagePeriod) {
-  return user[period];
-}
-
-function emptyUsage(): UserUsageCounts {
+function emptyUsage() {
   return {
     categoryKeywordJobCount: 0,
     processedProductCount: 0,

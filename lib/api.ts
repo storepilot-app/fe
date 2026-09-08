@@ -21,6 +21,7 @@ import {
   TrainingProductRequestListResponse,
   TrainingProductRequestResponse,
   TrainingProductRequestStatus,
+  UserUsagePeriod,
   UserWatermarkResponse,
   WatermarkPosition,
 } from "@/types/store-pilot";
@@ -464,8 +465,8 @@ export async function deleteTrainingProductRequest(requestId: number) {
   return (await response.json()) as TrainingProductRequestResponse;
 }
 
-export async function getAdminUserUsages() {
-  const response = await fetchWithAuth(ADMIN_USER_USAGE_URL, {
+export async function getAdminUserUsages(period: UserUsagePeriod) {
+  const response = await fetchWithAuth(`${ADMIN_USER_USAGE_URL}?period=${period}`, {
     cache: "no-store",
   });
   if (!response.ok) {

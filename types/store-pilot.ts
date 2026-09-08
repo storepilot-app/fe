@@ -276,26 +276,23 @@ export type TrainingProductRequestListResponse = {
   code?: string;
 };
 
-export type UserUsageCounts = {
-  categoryKeywordJobCount: number;
-  processedProductCount: number;
-  imageDownloadCount: number;
-  categoryLearningRequestCount: number;
-};
+export type UserUsagePeriod = "TODAY" | "MONTH" | "TOTAL";
 
 export type AdminUserUsage = {
   userId: number;
   email: string;
   role: "USER" | "ADMIN";
-  today: UserUsageCounts;
-  month: UserUsageCounts;
-  total: UserUsageCounts;
+  categoryKeywordJobCount: number;
+  processedProductCount: number;
+  imageDownloadCount: number;
+  categoryLearningRequestCount: number;
   lastUsedDate: string | null;
 };
 
 export type AdminUserUsageListResponse = {
   success: boolean;
   data?: {
+    period: UserUsagePeriod;
     userCount: number;
     users: AdminUserUsage[];
   };
