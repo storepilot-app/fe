@@ -276,6 +276,33 @@ export type TrainingProductRequestListResponse = {
   code?: string;
 };
 
+export type UserUsageCounts = {
+  categoryKeywordJobCount: number;
+  processedProductCount: number;
+  imageDownloadCount: number;
+  categoryLearningRequestCount: number;
+};
+
+export type AdminUserUsage = {
+  userId: number;
+  email: string;
+  role: "USER" | "ADMIN";
+  today: UserUsageCounts;
+  month: UserUsageCounts;
+  total: UserUsageCounts;
+  lastUsedDate: string | null;
+};
+
+export type AdminUserUsageListResponse = {
+  success: boolean;
+  data?: {
+    userCount: number;
+    users: AdminUserUsage[];
+  };
+  message?: string;
+  code?: string;
+};
+
 export type QnaQuestionStatus = "WAITING" | "ANSWERED";
 
 export type QnaFaq = {
