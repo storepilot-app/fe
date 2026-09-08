@@ -276,6 +276,48 @@ export type TrainingProductRequestListResponse = {
   code?: string;
 };
 
+export type UserUsagePeriod = "TODAY" | "MONTH" | "TOTAL";
+
+export type AdminUserUsage = {
+  userId: number;
+  email: string;
+  role: "USER" | "ADMIN";
+  categoryKeywordJobCount: number;
+  processedProductCount: number;
+  imageDownloadCount: number;
+  categoryLearningRequestCount: number;
+  lastUsedDate: string | null;
+};
+
+export type AdminUserUsageListResponse = {
+  success: boolean;
+  data?: {
+    period: UserUsagePeriod;
+    userCount: number;
+    users: AdminUserUsage[];
+  };
+  message?: string;
+  code?: string;
+};
+
+export type UserUsage = {
+  period: UserUsagePeriod;
+  categoryKeywordJobCount: number;
+  processedProductCount: number;
+  reservedProductCount: number;
+  dailyProductLimit: number;
+  imageDownloadCount: number;
+  categoryLearningRequestCount: number;
+  lastUsedDate: string | null;
+};
+
+export type UserUsageResponse = {
+  success: boolean;
+  data?: UserUsage;
+  message?: string;
+  code?: string;
+};
+
 export type QnaQuestionStatus = "WAITING" | "ANSWERED";
 
 export type QnaFaq = {

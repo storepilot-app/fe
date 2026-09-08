@@ -9,6 +9,7 @@ import {
   CircleHelp,
   Database,
   FolderUp,
+  Gauge,
   Home,
   ImageDown,
   Inbox,
@@ -18,6 +19,7 @@ import {
   SearchCheck,
   Stamp,
   Upload,
+  Users,
   UserX,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +38,8 @@ import { TrainingProductCategoryStatsPage } from "@/components/features/training
 import { TrainingProductUploadCard } from "@/components/features/training-product/training-product-upload-card";
 import { TrainingProductRequestCard } from "@/components/features/training-product/training-product-request-card";
 import { WatermarkSettingsCard } from "@/components/features/watermark/watermark-settings-card";
+import { AdminUserUsagePage } from "@/components/features/user-usage/admin-user-usage-page";
+import { UserUsagePage } from "@/components/features/user-usage/user-usage-page";
 import { HomeDashboard } from "@/components/features/home/home-dashboard";
 import { AuthPanel } from "@/components/features/auth/auth-panel";
 import { useAuthSession } from "@/components/features/auth/auth-session-provider";
@@ -58,7 +62,9 @@ type HomeView =
   | "training-product-add"
   | "training-product-category-stats"
   | "category-learning"
-  | "admin-training-product-requests";
+  | "user-usage"
+  | "admin-training-product-requests"
+  | "admin-user-usages";
 
 type AuthenticatedHomeProps = {
   currentView?: HomeView;
@@ -209,6 +215,10 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
       return <FullWidthContent><TrainingProductRequestCard /></FullWidthContent>;
     }
 
+    if (currentView === "user-usage") {
+      return <UserUsagePage />;
+    }
+
     if (currentView === "qna") {
       return <QnaPage user={authenticatedUser} />;
     }
@@ -239,6 +249,10 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
 
     if (currentView === "admin-training-product-requests") {
       return isAdmin ? <AdminTrainingProductRequestPage /> : <AccessDeniedMessage />;
+    }
+
+    if (currentView === "admin-user-usages") {
+      return isAdmin ? <AdminUserUsagePage /> : <AccessDeniedMessage />;
     }
 
     return null;
@@ -290,6 +304,9 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
             <SidebarButton active={currentView === "category-learning"} icon={BookOpenCheck} onClick={() => moveTo("/category-learning")}>
               카테고리 학습
             </SidebarButton>
+            <SidebarButton active={currentView === "user-usage"} icon={Gauge} onClick={() => moveTo("/usage")}>
+              내 사용량
+            </SidebarButton>
             <SidebarButton active={currentView === "qna" || currentView === "qna-faq-detail" || currentView === "qna-question-create" || currentView === "qna-question-detail"} icon={CircleHelp} onClick={() => moveTo("/qna")}>
               QnA
             </SidebarButton>
@@ -312,6 +329,9 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
               </SidebarButton>
               <SidebarButton active={currentView === "admin-training-product-requests"} icon={Inbox} onClick={() => moveTo("/admin/training-product-requests")}>
                 카테고리 학습 요청 관리
+              </SidebarButton>
+              <SidebarButton active={currentView === "admin-user-usages"} icon={Users} onClick={() => moveTo("/admin/user-usages")}>
+                사용자 사용량
               </SidebarButton>
             </nav>
           )}

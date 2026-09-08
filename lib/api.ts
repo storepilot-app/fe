@@ -1,4 +1,5 @@
 import {
+  AdminUserUsageListResponse,
   AuthResponse,
   AuthUserResponse,
   CategoryUploadResponse,
@@ -20,6 +21,8 @@ import {
   TrainingProductRequestListResponse,
   TrainingProductRequestResponse,
   TrainingProductRequestStatus,
+  UserUsagePeriod,
+  UserUsageResponse,
   UserWatermarkResponse,
   WatermarkPosition,
 } from "@/types/store-pilot";
@@ -39,6 +42,8 @@ const TRAINING_PRODUCT_CATEGORY_STATS_URL = `${API_BASE}/api/v1/admin/training-p
 const TRAINING_PRODUCT_FEEDBACK_URL = `${API_BASE}/api/v1/admin/training-products/feedback`;
 const TRAINING_PRODUCT_REQUEST_URL = `${API_BASE}/api/v1/training-product-requests`;
 const ADMIN_TRAINING_PRODUCT_REQUEST_URL = `${API_BASE}/api/v1/admin/training-product-requests`;
+const ADMIN_USER_USAGE_URL = `${API_BASE}/api/v1/admin/user-usages`;
+const USER_USAGE_URL = `${API_BASE}/api/v1/user-usages/me`;
 const AUTH_URL = `${API_BASE}/api/v1/auth`;
 const QNA_URL = `${API_BASE}/api/v1/qna`;
 const ADMIN_QNA_URL = `${API_BASE}/api/v1/admin/qna`;
@@ -460,6 +465,26 @@ export async function deleteTrainingProductRequest(requestId: number) {
     throw new Error(await readErrorMessage(response));
   }
   return (await response.json()) as TrainingProductRequestResponse;
+}
+
+export async function getAdminUserUsages(period: UserUsagePeriod) {
+  const response = await fetchWithAuth(`${ADMIN_USER_USAGE_URL}?period=${period}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return (await response.json()) as AdminUserUsageListResponse;
+}
+
+export async function getMyUsage(period: UserUsagePeriod) {
+  const response = await fetchWithAuth(`${USER_USAGE_URL}?period=${period}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return (await response.json()) as UserUsageResponse;
 }
 
 export async function getQnaFaqs() {
