@@ -96,7 +96,9 @@ export function UserUsagePage() {
           description="카테고리와 키워드를 찾은 상품 수입니다."
           icon={CalendarDays}
           label="처리 상품"
-          value={`${(usage?.processedProductCount ?? 0).toLocaleString()}개`}
+          value={period === "TODAY"
+            ? `${((usage?.processedProductCount ?? 0) + (usage?.reservedProductCount ?? 0)).toLocaleString()} / ${(usage?.dailyProductLimit ?? 2_000).toLocaleString()}개`
+            : `${(usage?.processedProductCount ?? 0).toLocaleString()}개`}
         />
         <UsageCard
           description="성공적으로 내려받은 상품 이미지 수입니다."

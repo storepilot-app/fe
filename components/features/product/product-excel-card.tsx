@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { SearchCheck } from "lucide-react";
 import { ActionButton } from "@/components/ui/action-button";
 import { UploadCard } from "@/components/ui/upload-card";
@@ -10,6 +10,7 @@ import {
   createProductExcelJob,
   downloadProductExcelJobResult,
   getProductExcelJobStatus,
+  getMyUsage,
 } from "@/lib/api";
 import {
   chooseSaveHandle,
@@ -43,8 +44,60 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
   const [excelMessage, setExcelMessage] = useState("");
   const [jobProgress, setJobProgress] = useState<ProductExcelJobProgress | null>(null);
   const [includeSelectionDetails, setIncludeSelectionDetails] = useState(true);
+  const [todayProductUsage, setTodayProductUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [todayUsageLoaded, setTodayUsageLoaded] = useState(false);
 
   const productFileLabel = useMemo(() => labelForFile(productFile), [productFile]);
+  const usagePercent = todayProductUsage
+    ? Math.min(100, Math.round((todayProductUsage.used / todayProductUsage.limit) * 100))
+    : 0;
+
+  const refreshTodayProductUsage = useCallback(async () => {
+    try {
+      const body = await getMyUsage("TODAY");
+      if (!body.data) {
+        setTodayProductUsage(null);
+        return;
+      }
+      setTodayProductUsage({
+        used: body.data.processedProductCount + body.data.reservedProductCount,
+        limit: body.data.dailyProductLimit,
+      });
+    } catch {
+      setTodayProductUsage(null);
+    } finally {
+      setTodayUsageLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    getMyUsage("TODAY")
+      .then((body) => {
+        if (!active) {
+          return;
+        }
+        setTodayProductUsage(body.data
+          ? {
+              used: body.data.processedProductCount + body.data.reservedProductCount,
+              limit: body.data.dailyProductLimit,
+            }
+          : null);
+      })
+      .catch(() => {
+        if (active) {
+          setTodayProductUsage(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setTodayUsageLoaded(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleProductFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selectedFile = event.target.files?.[0] ?? null;
@@ -84,6 +137,7 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
       }
 
       const jobId = createBody.data.jobId;
+      void refreshTodayProductUsage();
       while (true) {
         const statusBody = await getProductExcelJobStatus(jobId);
         if (!statusBody.data) {
@@ -118,6 +172,8 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
     } catch (error) {
       setExcelStatus("error");
       setExcelMessage(error instanceof Error ? error.message : "엑셀 저장 중 오류가 발생했습니다.");
+    } finally {
+      void refreshTodayProductUsage();
     }
   }
 
@@ -131,6 +187,9 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
       </div>
       <p className="rounded-md border border-teal-100 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-700">
         1행의 &apos;상품명&apos; 열을 기준으로 데이터를 추출합니다. 정확한 데이터 처리를 위해 열 이름(컬럼명)을 변경하지 않고 업로드해 주시기 바랍니다.
+        <span className="mt-1 block font-bold text-teal-800">
+          한 번에 최대 1,500개의 상품을 처리할 수 있습니다.
+        </span>
       </p>
     </div>
   );
@@ -147,6 +206,38 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
       message=""
       onFileChange={handleProductFileChange}
     >
+      <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="font-bold text-slate-600">오늘 상품 처리량</span>
+          <span className="font-black text-slate-900">
+            {!todayUsageLoaded
+              ? "확인 중..."
+              : todayProductUsage
+                ? `${todayProductUsage.used.toLocaleString()} / ${todayProductUsage.limit.toLocaleString()}개`
+                : "사용량을 확인하지 못했습니다."}
+          </span>
+        </div>
+        {todayProductUsage && (
+          <>
+            <div
+              aria-label="오늘 상품 처리량"
+              aria-valuemax={todayProductUsage.limit}
+              aria-valuemin={0}
+              aria-valuenow={todayProductUsage.used}
+              className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200"
+              role="progressbar"
+            >
+              <div
+                className={`h-full transition-[width] duration-300 ${usagePercent >= 100 ? "bg-red-600" : usagePercent >= 80 ? "bg-amber-500" : "bg-teal-700"}`}
+                style={{ width: `${usagePercent}%` }}
+              />
+            </div>
+            <p className="mt-2 text-right text-xs font-semibold text-slate-500">
+              남은 사용량 {Math.max(todayProductUsage.limit - todayProductUsage.used, 0).toLocaleString()}개
+            </p>
+          </>
+        )}
+      </div>
       {productFile && (
         <div className="grid gap-3">
           <form className="grid gap-2" onSubmit={handleExcelSubmit}>

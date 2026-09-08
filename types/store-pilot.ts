@@ -304,6 +304,8 @@ export type UserUsage = {
   period: UserUsagePeriod;
   categoryKeywordJobCount: number;
   processedProductCount: number;
+  reservedProductCount: number;
+  dailyProductLimit: number;
   imageDownloadCount: number;
   categoryLearningRequestCount: number;
   lastUsedDate: string | null;
