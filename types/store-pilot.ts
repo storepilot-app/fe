@@ -300,6 +300,22 @@ export type AdminUserUsageListResponse = {
   code?: string;
 };
 
+export type UserUsage = {
+  period: UserUsagePeriod;
+  categoryKeywordJobCount: number;
+  processedProductCount: number;
+  imageDownloadCount: number;
+  categoryLearningRequestCount: number;
+  lastUsedDate: string | null;
+};
+
+export type UserUsageResponse = {
+  success: boolean;
+  data?: UserUsage;
+  message?: string;
+  code?: string;
+};
+
 export type QnaQuestionStatus = "WAITING" | "ANSWERED";
 
 export type QnaFaq = {
