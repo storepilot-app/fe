@@ -406,3 +406,13 @@ export type WindowWithSavePicker = Window & {
   showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>;
   showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
 };
+export type ProductMappingPreview = {
+  products: Array<{
+    rowNumber: number;
+    productName: string;
+    myCategoryCode: string;
+    naverCategoryCode: string | null;
+    naverCategoryFullPath: string | null;
+    reason: string | null;
+  }>;
+};

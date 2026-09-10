@@ -1,4 +1,5 @@
 import {
+  ProductMappingPreview,
   AdminUserUsageListResponse,
   AuthResponse,
   AuthUserResponse,
@@ -28,6 +29,20 @@ import {
 } from "@/types/store-pilot";
 
 const API_BASE = resolveApiBase();
+
+export async function previewProductMappings(file: File, myCategoryFile: File): Promise<ProductMappingPreview> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("myCategoryFile", myCategoryFile);
+  const response = await fetchWithAuth(`${API_BASE}/api/v1/admin/training-products/mapping-preview`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) throw new Error(await readErrorMessage(response));
+  const body = await response.json();
+  if (!body.success || !body.data) throw new Error(body.message ?? "매핑을 확인하지 못했습니다.");
+  return body.data;
+}
 
 const PRODUCT_EXCEL_JOB_URL = `${API_BASE}/api/v1/product-excel-jobs`;
 const IMAGE_DOWNLOAD_PREPARE_URL = `${API_BASE}/api/v1/product-excel-jobs/images/prepare`;
