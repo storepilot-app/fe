@@ -70,6 +70,7 @@ API 요청은 브라우저에서 BE로 직접 전송합니다. 현재 Next.js AP
 | `/training-products/add` | 추가 상품 파일·마이카테 파일 업로드 |
 | `/training-products/category-stats` | 학습 상품 카테고리 통계 |
 | `/admin/training-product-requests` | 제출 파일·요청자 매핑 다운로드, 상태 변경, 파일 삭제 |
+| `/admin/product-mapping-preview` | 상품·매핑 엑셀 비교, 네이버 카테고리 및 실패 사유 확인 (저장·학습 없음) |
 | `/admin/user-usages` | 사용자별 사용량 조회 |
 
 관리자는 QnA 화면에서 자주 묻는 질문 등록·수정·노출 설정과 사용자 문의 답변을 처리합니다.
@@ -196,7 +197,7 @@ QnA 상세는 동적 경로의 ID를 검증한 뒤 같은 화면 틀을 사용�
 | `/api/v1/user-usages/me?period=...` | 내 사용량 |
 | `/api/v1/qna/*` | 자주 묻는 질문·내 문의 |
 | `/api/v1/admin/naver-categories/upload` | 네이버 카테고리 업로드 |
-| `/api/v1/admin/training-products/*` | `rebuild`, `append`, `category-stats`, `feedback` |
+| `/api/v1/admin/training-products/*` | `rebuild`, `append`, `category-stats`, `feedback`, `mapping-preview` |
 | `/api/v1/admin/training-product-requests/*` | 요청 관리·원본/매핑 다운로드 |
 | `/api/v1/admin/user-usages?period=...` | 사용자별 사용량 |
 | `/api/v1/admin/qna/*` | 관리자 FAQ·문의 관리 |

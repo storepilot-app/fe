@@ -42,6 +42,7 @@ import { AdminUserUsagePage } from "@/components/features/user-usage/admin-user-
 import { UserUsagePage } from "@/components/features/user-usage/user-usage-page";
 import { HomeDashboard } from "@/components/features/home/home-dashboard";
 import { AuthPanel } from "@/components/features/auth/auth-panel";
+import { ProductMappingPreviewPage } from "@/components/features/training-product/product-mapping-preview-page";
 import { useAuthSession } from "@/components/features/auth/auth-session-provider";
 import { deleteAccount, getMyCategoryMappings, logout } from "@/lib/api";
 import { AuthUser } from "@/types/store-pilot";
@@ -64,7 +65,8 @@ type HomeView =
   | "category-learning"
   | "user-usage"
   | "admin-training-product-requests"
-  | "admin-user-usages";
+  | "admin-user-usages"
+  | "product-mapping-preview";
 
 type AuthenticatedHomeProps = {
   currentView?: HomeView;
@@ -183,6 +185,9 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
   const isAdmin = authenticatedUser.role === "ADMIN";
 
   function renderContent() {
+    if (currentView === "product-mapping-preview") {
+      return isAdmin ? <ProductMappingPreviewPage /> : <AccessDeniedMessage />;
+    }
     if (currentView === "dashboard") {
       return <FullWidthContent><HomeDashboard isAdmin={isAdmin} onNavigate={moveTo} /></FullWidthContent>;
     }
@@ -315,6 +320,9 @@ export function AuthenticatedHome({ currentView = "dashboard", faqId, questionId
           {isAdmin && (
             <nav className="mt-4 grid gap-1 border-t border-slate-200 pt-4" aria-label="관리자 메뉴">
               <p className="px-3 pb-1 text-xs font-extrabold text-slate-400">관리자</p>
+              <SidebarButton active={currentView === "product-mapping-preview"} icon={SearchCheck} onClick={() => moveTo("/admin/product-mapping-preview")}>
+                상품 카테고리 매핑 확인
+              </SidebarButton>
               <SidebarButton active={currentView === "naver-category-upload"} icon={FolderUp} onClick={() => moveTo("/naver-categories/upload")}>
                 네이버 카테고리 업로드
               </SidebarButton>
