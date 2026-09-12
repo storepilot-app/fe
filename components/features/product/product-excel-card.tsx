@@ -258,9 +258,11 @@ export function ProductExcelCard({ isAdmin }: { isAdmin: boolean }) {
                 </span>
               </label>
             )}
-            <ActionButton disabled={excelStatus === "uploading"} loading={excelStatus === "uploading"}>
-              {excelStatus === "uploading" ? "카테고리 찾는 중..." : "결과 엑셀 저장"}
-            </ActionButton>
+            {excelStatus !== "success" && (
+              <ActionButton disabled={excelStatus === "uploading"} loading={excelStatus === "uploading"}>
+                {excelStatus === "uploading" ? "카테고리 찾는 중..." : "결과 엑셀 저장"}
+              </ActionButton>
+            )}
             <p className={statusClassName(excelStatus)}>{excelMessage}</p>
             {jobProgress && (
               <div className="grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3">
