@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, MessageCircleQuestion, Trash2 } from "lucide-react";
 import {
   answerQnaQuestion,
+  followUpQnaQuestion,
   deleteQnaQuestion,
   getAdminQnaQuestion,
   getMyQnaQuestion,
@@ -68,17 +69,19 @@ export function QnaQuestionDetailPage({ questionId, user }: QnaQuestionDetailPag
   async function handleAnswerSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("uploading");
-    setMessage("답변을 등록하는 중입니다...");
+    setMessage("등록하는 중입니다...");
 
     try {
-      const body = await answerQnaQuestion(questionId, answer);
+      const body = await (isAdmin
+        ? answerQnaQuestion(questionId, answer)
+        : followUpQnaQuestion(questionId, answer));
       setQuestion(body.data ?? null);
       setAnswer("");
       setStatus("success");
-      setMessage("답변이 등록되었습니다.");
+      setMessage(isAdmin ? "답변이 등록되었습니다." : "재질문이 등록되었습니다.");
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "답변 등록 중 오류가 발생했습니다.");
+      setMessage(error instanceof Error ? error.message : "등록 중 오류가 발생했습니다.");
     }
   }
 
@@ -165,6 +168,17 @@ export function QnaQuestionDetailPage({ questionId, user }: QnaQuestionDetailPag
               </p>
             </div>
 
+            {question.messages?.map((entry, index) => (
+              <div key={index}>
+                <h3 className="text-sm font-black text-slate-800">
+                  {entry.admin ? "답변" : "재질문"} {formatDate(entry.createdAt)}
+                </h3>
+                <p className={`mt-2 whitespace-pre-wrap rounded-md p-4 text-sm leading-6 ${entry.admin ? "bg-teal-50 text-teal-950" : "bg-slate-50 text-slate-700"}`}>
+                  {entry.content}
+                </p>
+              </div>
+            ))}
+
             {question.answer && (
               <div>
                 <h3 className="text-sm font-black text-teal-800">답변 {formatDate(question.answeredAt)}</h3>
@@ -174,24 +188,25 @@ export function QnaQuestionDetailPage({ questionId, user }: QnaQuestionDetailPag
               </div>
             )}
 
-            {isAdmin && (
+            {(isAdmin || question.userId === user.id) && (
               <form className="grid gap-3 border-t border-slate-200 pt-5" onSubmit={handleAnswerSubmit}>
                 <label className="grid gap-2 text-sm font-black text-slate-800">
-                  답변 작성
+                  {isAdmin ? "답변 작성" : "재질문 작성"}
                   <textarea
                     className="min-h-32 resize-y rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100"
                     maxLength={5000}
+                    required
                     onChange={(event) => setAnswer(event.target.value)}
-                    placeholder="답변 내용을 입력하세요."
+                    placeholder={isAdmin ? "답변 내용을 입력하세요." : "추가로 궁금한 내용을 입력하세요."}
                     value={answer}
                   />
                 </label>
                 <button
                   className="h-10 w-fit cursor-pointer rounded-md bg-teal-700 px-4 text-sm font-extrabold text-white transition hover:bg-teal-800 disabled:cursor-wait disabled:bg-slate-400"
-                  disabled={status === "uploading"}
+                  disabled={status === "uploading" || !answer.trim()}
                   type="submit"
                 >
-                  {status === "uploading" ? "등록 중..." : "답변 등록"}
+                  {status === "uploading" ? "등록 중..." : isAdmin ? "답변 등록" : "재질문 등록"}
                 </button>
               </form>
             )}
