@@ -350,6 +350,7 @@ export type QnaFaqResponse = {
 };
 
 export type QnaQuestion = {
+  messages?: { content: string; admin: boolean; createdAt: string }[];
   id: number;
   userId: number;
   title: string;

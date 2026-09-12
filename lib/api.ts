@@ -617,6 +617,18 @@ export async function deleteQnaQuestion(questionId: number) {
   }
 }
 
+export async function followUpQnaQuestion(questionId: number, content: string) {
+  const response = await fetchWithAuth(`${QNA_URL}/questions/${questionId}/follow-ups`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return (await response.json()) as QnaQuestionResponse;
+}
+
 export async function getAdminQnaQuestions() {
   const response = await fetchWithAuth(`${ADMIN_QNA_URL}/questions`, {
     cache: "no-store",
